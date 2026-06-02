@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎬 Movie Rating Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🎬 Movie Rating Predictor</h1>
+<p>AI-Powered IMDb Rating Prediction System</p>
+    <p>Predict IMDb Rating of Indian Movies using Machine Learning</p>
+  </div>
+
+  <div class="card">
+    <form id="predForm">
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>🎭 Genre</label>
+          <select name="genre" id="genre">
+            <option value="Drama">Drama</option>
+            <option value="Action">Action</option>
+            <option value="Comedy">Comedy</option>
+            <option value="Romance">Romance</option>
+            <option value="Thriller">Thriller</option>
+            <option value="Horror">Horror</option>
+            <option value="Crime">Crime</option>
+            <option value="Biography">Biography</option>
+            <option value="Adventure">Adventure</option>
+            <option value="Fantasy">Fantasy</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🎬 Director Name</label>
+          <input type="text" name="director" placeholder="e.g. Rajkumar Hirani" />
+        </div>
+
+        <div class="form-group">
+          <label>🌟 Actor 1</label>
+          <input type="text" name="actor1" placeholder="e.g. Aamir Khan" />
+        </div>
+
+        <div class="form-group">
+          <label>🌟 Actor 2</label>
+          <input type="text" name="actor2" placeholder="e.g. Kareena Kapoor" />
+        </div>
+
+        <div class="form-group">
+          <label>🌟 Actor 3</label>
+          <input type="text" name="actor3" placeholder="e.g. Boman Irani" />
+        </div>
+
+        <div class="form-group">
+          <label>⏱ Duration (minutes)</label>
+          <input type="number" name="duration" placeholder="e.g. 160" min="1" max="300" />
+        </div>
+
+        <div class="form-group">
+          <label>🗳 Votes</label>
+          <input type="number" name="votes" placeholder="e.g. 50000" min="1" />
+        </div>
+
+        <div class="form-group">
+          <label>📅 Release Year</label>
+          <input type="number" name="year" placeholder="e.g. 2019"
+                 min="1900" max="2024" />
+        </div>
+
+      </div>
+
+      <button type="submit" class="btn-predict">🔮 Predict Rating</button>
+
+    </form>
+
+    <div id="result" class="result hidden">
+      <div class="result-inner">
+        <p>Predicted IMDb Rating</p>
+        <h2 id="ratingValue">—</h2>
+        <div id="stars"></div>
+      </div>
+    </div>
+
+    <div id="errorBox" class="error hidden"></div>
+  </div>
+
+</div>
+
+<script>
+  document.getElementById('predForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    // Add dropdown value manually
+    formData.set('genre', document.getElementById('genre').value);
+
+    document.getElementById('result').classList.add('hidden');
+    document.getElementById('errorBox').classList.add('hidden');
+
+    try {
+      const response = await fetch('/predict', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        const rating = data.rating;
+        document.getElementById('ratingValue').textContent = rating + ' / 10';
+
+        // Stars
+        const stars = '⭐'.repeat(Math.round(rating));
+        document.getElementById('stars').textContent = stars;
+
+        document.getElementById('result').classList.remove('hidden');
+
+        // Color based on rating
+        const box = document.querySelector('.result-inner');
+        if (rating >= 7) box.style.background = 'linear-gradient(135deg, #11998e, #38ef7d)';
+        else if (rating >= 5) box.style.background = 'linear-gradient(135deg, #f7971e, #ffd200)';
+        else box.style.background = 'linear-gradient(135deg, #c0392b, #e74c3c)';
+
+      } else {
+        document.getElementById('errorBox').textContent = '❌ Error: ' + data.error;
+        document.getElementById('errorBox').classList.remove('hidden');
+      }
+    } catch (err) {
+      document.getElementById('errorBox').textContent = '❌ Connection Error. Is Flask running?';
+      document.getElementById('errorBox').classList.remove('hidden');
+    }
+  });
+</script>
+
+</body>
+</html>
